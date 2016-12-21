@@ -45,7 +45,7 @@ if __name__ == '__main__':
     result_dir = os.path.join(args.target_dir, '{:%Y.%m.%d__%X}'.format(datetime.now()))
     os.mkdir(result_dir)
 
-    all_files = list(itertools.chain.from_iterable(
+    all_files = sorted(itertools.chain.from_iterable(
         (os.path.join(root, f) for f in files if '.png' in f) for root, _, files in os.walk(args.dir)))
 
     files_iterator = itertools.chain.from_iterable(itertools.repeat(file, args.repeats) for file in all_files)
@@ -54,10 +54,13 @@ if __name__ == '__main__':
                     TOP_MARGIN + y * (CARD_HEIGHT + SPACING))
                    for y, x in itertools.product(range(CARD_ROWS), range(CARD_COLUMNS))]
 
-    empty_image = Image.new('RGB', (CARD_WIDTH, CARD_HEIGHT), color=(255, 255, 255))
+    if args.debug:
+        empty_image = Image.new('RGB', (CARD_WIDTH, CARD_HEIGHT), color=(255, 255, 255))
+    else:
+        empty_image = Image.new('RGB', (1, 1))
 
     with tqdm(total=len(all_files) * args.repeats) as progress_bar:
-        for index, files in enumerate(chunked_files):
+        for index, files in enumerate(chunked_files, start=1):
             base_image = Image.new('RGBA' if args.debug else 'RGB', (WIDTH, HEIGHT))
 
             for pos, file in tqdm(zip(coordinates, files), total=len(files), desc='sheet ' + str(index)):
